@@ -1,149 +1,127 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
 import { 
-  Stethoscope, 
+  UserPlus, 
   Cpu, 
   Smartphone, 
-  Hand, 
-  ListChecks, 
+  SearchCheck, 
   ShieldCheck, 
-  MessageSquare 
+  Bell, 
+  ClipboardCheck 
 } from "lucide-react";
 
 /**
- * Steps sequence for the ConsentLens process
+ * Seven-step flow for ConsentLens process
  */
-const steps = [
+const STEPS = [
   {
-    icon: Stethoscope,
-    title: "Doctor Selects Surgery",
-    desc: "Appendix, Gallbladder, C-Section. Language: Bhojpuri.",
+    title: "1. Doctor Selects",
+    body: "Surgery type, patient name, language, kin phone. Takes 10 seconds.",
+    icon: UserPlus,
   },
   {
+    title: "2. AI Generates",
+    body: "Gemini simplifies risks. ElevenLabs creates Bhojpuri audio. D-ID avatar lipsyncs. 90-second video ready in 45 seconds.",
     icon: Cpu,
-    title: "AI Generates Video",
-    desc: "GPT-4o simplifies risks. ElevenLabs speaks. D-ID avatar lipsyncs. 45 seconds.",
   },
   {
+    title: "3. Patient Watches",
+    body: "Full-screen avatar video on tablet. Samajh Gaya / Phir Se Batao after each risk.",
     icon: Smartphone,
-    title: "Patient Watches",
-    desc: "WhatsApp-style UI on ward tablet. Big buttons for elderly.",
   },
   {
-    icon: Hand,
-    title: "Comprehension Gate",
-    desc: "Taps 'समझ गया' after each risk. Cannot skip or fake.",
+    title: "4. Comprehension Verified",
+    body: "5/5 taps logged with timestamps. MCQ voice check. Face cam nod captured.",
+    icon: SearchCheck,
   },
   {
-    icon: ListChecks,
-    title: "MCQ Check",
-    desc: "Random question: 'Dard kitne din?'. Wrong = nurse called automatically.",
-  },
-  {
+    title: "5. Proof Sealed",
+    body: "C2PA hash generated. QR watermark embedded. FHIR DocumentReference created.",
     icon: ShieldCheck,
-    title: "C2PA Signing",
-    desc: "Video + face nod hashed. Tamper-proof certificate created instantly.",
   },
   {
-    icon: MessageSquare,
-    title: "Doctor Approves",
-    desc: "WhatsApp: '5/5 understood'. 1-tap approve files to EHR via FHIR.",
+    title: "6. Doctor Notified",
+    body: "WhatsApp: 'Bed 12 understood 5/5. Ready for your 2-min consultation.' One tap to Approve.",
+    icon: Bell,
+  },
+  {
+    title: "7. OT Ready",
+    body: "OT schedule updated. Nursing station notified. Language pref logged in EHR.",
+    icon: ClipboardCheck,
   },
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: { opacity: 1, x: 0 },
+};
+
 export default function HowItWorks() {
   return (
-    <section id="howitworks" className="bg-slate-50 dark:bg-slate-900/50 py-20 lg:py-28">
+    <section id="howitworks" className="bg-white dark:bg-slate-900 py-20 lg:py-28 overflow-hidden">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        {/* Header content */}
-        <div className="mx-auto max-w-2xl text-center">
-          <Badge className="mb-4 bg-teal-600/10 text-teal-700 dark:bg-teal-600/20 dark:text-teal-400 border-teal-600/20">
-            How It Works
-          </Badge>
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
-            From RBI PDF to Doctor Approval in 3 Minutes
+        {/* Header */}
+        <div className="mx-auto max-w-2xl lg:text-center mb-16">
+          <h2 className="text-base font-semibold leading-7 text-[#5B4FCF]">
+            The Journey
           </h2>
+          <p className="mt-2 text-3xl font-bold tracking-tight text-[#1A1A2E] dark:text-white sm:text-4xl">
+            From Paper Chase to 3 Minutes
+          </p>
           <p className="mt-4 text-lg leading-8 text-slate-600 dark:text-slate-400">
-            Seven steps. Zero paper. Full legal proof.
+            7 steps. Fully automated. Human oversight preserved at every stage.
           </p>
         </div>
 
-        {/* Grid layout */}
-        <div className="mt-16 grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16 lg:items-center">
-          
-          {/* LEFT: PHONE MOCKUP */}
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }} 
-            whileInView={{ opacity: 1, x: 0 }} 
-            transition={{ duration: 0.5 }} 
-            viewport={{ once: true }} 
-            className="relative mx-auto w-full max-w-[340px] lg:mx-0"
-          >
-            {/* Phone frame */}
-            <div className="relative rounded-[2.5rem] border-8 border-slate-900 bg-slate-900 shadow-2xl">
-              {/* Screen fallback/placeholder as requested */}
-              <div className="aspect-[9/19.5] w-full overflow-hidden rounded-[2rem] bg-slate-950 flex flex-col items-center justify-center text-slate-500 p-8 text-center">
-                <div className="w-16 h-16 rounded-full bg-slate-900 mb-4 flex items-center justify-center border border-slate-800">
-                   <ShieldCheck className="w-8 h-8 text-teal-500" />
+        {/* Steps List */}
+        <motion.div 
+          className="mx-auto max-w-3xl flex flex-col gap-10"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          {STEPS.map((step, index) => {
+            const Icon = step.icon;
+            return (
+              <motion.div 
+                key={index} 
+                className="flex items-start gap-6 group"
+                variants={itemVariants}
+              >
+                {/* Number Circle */}
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#5B4FCF] text-white font-bold text-xl shadow-lg shadow-purple-500/20">
+                  {index + 1}
                 </div>
-                <div className="text-sm font-medium text-slate-400 mb-2">PWA Preview</div>
-                <div className="text-[10px] text-slate-600">Patient consent interface is being generated...</div>
-              </div>
-              
-              {/* Notch */}
-              <div className="absolute left-1/2 top-0 h-6 w-32 -translate-x-1/2 rounded-b-2xl bg-slate-900" />
-            </div>
-            
-            {/* Glow effect */}
-            <div className="absolute -inset-8 -z-10 rounded-full bg-teal-600/10 blur-3xl" />
-          </motion.div>
 
-          {/* RIGHT: NUMBERED LIST */}
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }} 
-            whileInView={{ opacity: 1, x: 0 }} 
-            transition={{ duration: 0.5, delay: 0.2 }} 
-            viewport={{ once: true }} 
-            className="flex flex-col gap-8"
-          >
-            {steps.map((step, index) => {
-              const Icon = step.icon;
-              return (
-                <motion.div 
-                  key={index} 
-                  initial={{ opacity: 0, y: 10 }} 
-                  whileInView={{ opacity: 1, y: 0 }} 
-                  transition={{ delay: index * 0.1 }} 
-                  viewport={{ once: true }} 
-                  className="flex gap-4"
-                >
-                  {/* Step Number Circle */}
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-600 text-white font-semibold text-lg">
-                    {index + 1}
+                {/* Content */}
+                <div className="flex-1 pt-1">
+                  <div className="flex items-center justify-between gap-4">
+                    <h3 className="text-xl font-bold text-[#1A1A2E] dark:text-white">
+                      {step.title}
+                    </h3>
+                    {/* Small Icon */}
+                    <Icon size={20} className="text-[#5B4FCF]/40 group-hover:text-[#5B4FCF] transition-colors" />
                   </div>
-
-                  {/* Step Content */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      {/* Sub-icon container */}
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-200 dark:bg-slate-800">
-                        <Icon size={18} className="text-slate-700 dark:text-slate-300" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                        {step.title}
-                      </h3>
-                    </div>
-                    <p className="mt-2 text-base leading-7 text-slate-600 dark:text-slate-400">
-                      {step.desc}
-                    </p>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </motion.div>
-        </div>
+                  <p className="mt-2 text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
+                    {step.body}
+                  </p>
+                </div>
+              </motion.div>
+            );
+          })}
+        </motion.div>
       </div>
     </section>
   );

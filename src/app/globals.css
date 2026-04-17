@@ -3,6 +3,10 @@
 @theme inline {
   --color-background: #ffffff;
   --color-foreground: #171717;
+  --color-primary: #5B4FCF;
+  --color-accent: #6C72CB;
+  --color-teal: #00BCD4;
+  --color-pink: #E91E8C;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -15,9 +19,9 @@
 body {
   background: var(--color-background);
   color: var(--color-foreground);
+  font-family: 'Inter', sans-serif;
 }
 
-/* Smooth scrolling for anchor links */
 html {
   scroll-behavior: smooth;
 }

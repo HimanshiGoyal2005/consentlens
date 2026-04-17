@@ -1,45 +1,45 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Video, ShieldCheck, FileCheck2 } from "lucide-react";
+import { MessageSquare, ShieldCheck, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const FEATURES = [
   {
-    icon: Video,
-    title: "Dialect Video Consent",
+    icon: MessageSquare,
+    title: "Speaks Their Language",
     description:
-      "AI avatar explains surgery risks in Bhojpuri, Maithili, or Hindi. Patient hears risks in mother tongue. 90-second video replaces 4-page English PDF that no one reads.",
+      "Avatar explains surgery risks in Bhojpuri, Maithili, Awadhi and 50+ Indian dialects — not translated English. Patients understand. Not just sign.",
+    color: "#00BCD4", // Teal
   },
   {
     icon: ShieldCheck,
-    title: "Comprehension Gate",
+    title: "Proves Understanding",
     description:
-      "Patient cannot sign until they tap 'समझ गया' for all 5 risks. Random MCQ blocks blind clicking. Every tap logged with timestamp for audit.",
+      "Patient taps Samajh Gaya after each risk. Random MCQ voice check after all 5. Can't proceed to signature without genuinely understanding.",
+    color: "#5B4FCF", // Purple
   },
   {
-    icon: FileCheck2,
-    title: "C2PA Legal Shield",
+    icon: Lock,
+    title: "Court-Proof Receipt",
     description:
-      "Video + PDF signed with C2PA standard. Tamper-proof and court-admissible. One-click verify shows patient, doctor, time, and SHA-256 hash.",
+      "C2PA tamper-proof video receipt with QR overlay every 5 seconds. Scan any frame. Match to session log. Used in journalism — now in medicine.",
+    color: "#E91E8C", // Pink
   },
 ];
 
 export default function Features() {
   return (
-    <section id="features" className="bg-white dark:bg-slate-950 py-20 lg:py-28">
+    <section id="features" className="bg-[#F5F4FF] dark:bg-slate-950 py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         {/* ── Header ── */}
         <div className="mx-auto max-w-2xl text-center">
           <Badge className="mb-4 bg-purple-600/10 text-purple-700 dark:bg-purple-600/20 dark:text-purple-400 border-purple-600/20">
-            Why Hospitals Choose Us
+            Why ConsentLens Works
           </Badge>
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
-            Built for Indian Hospitals
+          <h2 className="text-3xl font-bold tracking-tight text-[#1A1A2E] dark:text-white sm:text-4xl">
+            Three pillars that protect patients, doctors, and hospitals.
           </h2>
-          <p className="mt-4 text-lg leading-8 text-slate-600 dark:text-slate-400">
-            Not a chatbot. A legal shield that saves 20 minutes per surgery.
-          </p>
         </div>
 
         {/* ── Card Grid ── */}
@@ -49,25 +49,25 @@ export default function Features() {
             return (
               <motion.div
                 key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
+                transition={{ duration: 0.5, delay: index * 0.15 }}
                 viewport={{ once: true }}
-                whileHover={{ y: -4 }}
-                className="relative rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8"
+                className="relative rounded-[16px] bg-white dark:bg-slate-900 p-8 shadow-sm border-t-[3px]"
+                style={{ borderTopColor: feature.color }}
               >
-                {/* Icon */}
-                <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-600/10 dark:bg-purple-600/20">
-                  <Icon size={28} className="text-purple-600 dark:text-purple-500" />
+                {/* Icon Wrapper */}
+                <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl" style={{ backgroundColor: `${feature.color}15` }}>
+                  <Icon size={28} style={{ color: feature.color }} />
                 </div>
 
                 {/* Title */}
-                <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
+                <h3 className="text-xl font-bold text-[#1A1A2E] dark:text-white">
                   {feature.title}
                 </h3>
 
                 {/* Description */}
-                <p className="mt-3 text-base leading-7 text-slate-600 dark:text-slate-400">
+                <p className="mt-4 text-base leading-relaxed text-slate-600 dark:text-slate-400">
                   {feature.description}
                 </p>
               </motion.div>
