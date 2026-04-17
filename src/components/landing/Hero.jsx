@@ -37,7 +37,16 @@ function NavBar() {
       </div>
 
       {/* Right */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
+        <Link href="/dashboard">
+          <Button
+            size="sm"
+            variant="outline"
+            className="hidden sm:flex border-purple-600/20 text-purple-600 dark:text-purple-400 hover:bg-purple-600/10"
+          >
+            Doctor Dashboard
+          </Button>
+        </Link>
         <Link
           href="/signin"
           className="text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors"
@@ -211,11 +220,10 @@ function PatientPWAScreen() {
         ].map((lang) => (
           <span
             key={lang.label}
-            className={`flex-1 text-center rounded-full py-1 text-[10px] font-medium transition-colors ${
-              lang.active
+            className={`flex-1 text-center rounded-full py-1 text-[10px] font-medium transition-colors ${lang.active
                 ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
                 : "bg-slate-800 text-slate-400"
-            }`}
+              }`}
           >
             {lang.label}
           </span>
@@ -318,21 +326,25 @@ export default function Hero() {
             C2PA proof. 2 hours become 10 minutes.
           </p>
 
-          <div className="mt-8 flex items-center gap-4">
-            <Button
-              size="lg"
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              Start Free Trial
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="gap-2 border-slate-300 dark:border-slate-700"
-            >
-              <PlayCircle className="h-5 w-5" />
-              Watch Demo
-            </Button>
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <Link href="/consent/new">
+              <Button
+                size="lg"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-8"
+              >
+                Doctor Portal
+              </Button>
+            </Link>
+            <Link href="/p/demo_session">
+              <Button
+                size="lg"
+                variant="outline"
+                className="gap-2 border-slate-300 dark:border-slate-700 px-8"
+              >
+                <PlayCircle className="h-5 w-5" />
+                Patient Demo
+              </Button>
+            </Link>
           </div>
 
           <AvatarStack />

@@ -16,27 +16,47 @@ function sleep(ms) {
 }
 
 /**
- * Generate an avatar video using D-ID Expressives V4.
- * Returns the Supabase public URL of the uploaded MP4, or null on failure.
- * Never throws — caller handles null as fallback.
+ * Generate an avatar video using D-ID Talks (Standard V3).
+ * Uses native Microsoft voices to ensure reliability and bypass external key issues.
  */
-export async function generateAvatarVideo(scriptText, sessionId) {
+export async function generateAvatarVideo(scriptText, sessionId, language = 'Hindi') {
   try {
-    // Step 1: Create expressive
-    console.log('[D-ID] Creating expressive video...');
-    const createRes = await fetch(`${DID_API_URL}/expressives`, {
+    const SAREE_DOCTOR_URL = "https://edamqdqlfscmgxwjdvsa.supabase.co/storage/v1/object/public/consent-videos/avatars/saree_doctor.png";
+
+    // Language to Microsoft Voice Mapping
+    const voiceMap = {
+      'Hindi': 'hi-IN-SwaraNeural',
+      'Marathi': 'mr-IN-AarohiNeural',
+      'Bhojpuri': 'hi-IN-MadhurNeural', // Fallback to clear Hindi
+      'Awadhi': 'hi-IN-SwaraNeural',
+      'Maithili': 'hi-IN-SwaraNeural',
+      'English': 'en-IN-NeerjaNeural'
+    };
+
+    const selectedVoice = voiceMap[language] || 'hi-IN-SwaraNeural';
+
+    // Step 1: Create Talk
+    console.log(`[D-ID] Creating talk video with Saree Doctor & Microsoft Voice (${selectedVoice})...`);
+    const createRes = await fetch(`${DID_API_URL}/talks`, {
       method: 'POST',
       headers: {
-        Authorization: getAuthHeader(),
+        'Authorization': getAuthHeader(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        avatar_id: 'public_amber_casual@avt_PfMblk',
-        sentiment_id: 'snt_aBC123ABc',
+        source_url: SAREE_DOCTOR_URL,
         script: {
           type: 'text',
           input: scriptText,
+          provider: {
+            type: 'microsoft',
+            voice_id: selectedVoice,
+          }
         },
+        config: {
+          fluent: true,
+          pad_audio: 0.5
+        }
       }),
     });
 
@@ -47,18 +67,18 @@ export async function generateAvatarVideo(scriptText, sessionId) {
     }
 
     const createData = await createRes.json();
-    const expressiveId = createData.id;
-    console.log(`[D-ID] Expressive created: ${expressiveId}`);
+    const talkId = createData.id;
+    console.log(`[D-ID] Talk created: ${talkId}`);
 
-    // Step 2: Poll for completion — every 3s, max 10 attempts (30 seconds)
+    // Step 2: Poll for completion — every 3s, max 20 attempts (60 seconds)
     let resultUrl = null;
-    for (let attempt = 1; attempt <= 10; attempt++) {
+    for (let attempt = 1; attempt <= 20; attempt++) {
       await sleep(3000);
 
-      const pollRes = await fetch(`${DID_API_URL}/expressives/${expressiveId}`, {
+      const pollRes = await fetch(`${DID_API_URL}/talks/${talkId}`, {
         method: 'GET',
         headers: {
-          Authorization: getAuthHeader(),
+          'Authorization': getAuthHeader(),
         },
       });
 
@@ -68,7 +88,7 @@ export async function generateAvatarVideo(scriptText, sessionId) {
       }
 
       const pollData = await pollRes.json();
-      console.log(`[D-ID] Poll attempt ${attempt}/10 — status: ${pollData.status}`);
+      console.log(`[D-ID] Poll attempt ${attempt}/20 — status: ${pollData.status}`);
 
       if (pollData.status === 'done') {
         resultUrl = pollData.result_url;
@@ -77,6 +97,7 @@ export async function generateAvatarVideo(scriptText, sessionId) {
 
       if (pollData.status === 'error' || pollData.status === 'rejected') {
         console.error('[D-ID] Video generation failed with status:', pollData.status);
+        if (pollData.error) console.error('[D-ID] Error Detail:', pollData.error);
         return null;
       }
     }

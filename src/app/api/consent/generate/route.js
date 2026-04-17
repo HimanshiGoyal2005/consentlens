@@ -73,7 +73,7 @@ export async function POST(request) {
     const scriptText = bullets.join('. ');
 
     // Step 6: Generate avatar video via D-ID
-    let video_url = await generateAvatarVideo(scriptText, sessionId);
+    let video_url = await generateAvatarVideo(scriptText, sessionId, language);
 
     if (!video_url) {
       console.warn(`[Generate] D-ID returned null for session ${sessionId} — using fallback`);

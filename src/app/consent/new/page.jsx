@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { PatientInteractionFlow } from "@/components/ui/PatientInteractionFlow";
 
 const SURGERIES = [
   { id: "appendix_lap", label: "Laparoscopic Appendectomy" },
@@ -41,7 +42,6 @@ export default function NewConsentPage() {
   const [videoUrl, setVideoUrl] = useState(null);
   const [error, setError] = useState(null);
   const [pollCount, setPollCount] = useState(0);
-  const [qrCodeUrl, setQrCodeUrl] = useState(null);
 
   // Load doctor ID from localStorage on mount
   useEffect(() => {
@@ -61,25 +61,19 @@ export default function NewConsentPage() {
       const response = await fetch(`/api/consent/session/${sid}`);
       if (!response.ok) throw new Error("Failed to fetch session");
 
-      const session = await response.json();
+      const data = await response.json();
       setPollCount((prev) => prev + 1);
 
-      if (session.status === "ready") {
-        setVideoUrl(session.video_url);
-        const patientLink = `${window.location.origin}/p/${sid}`;
-        setQrCodeUrl(
-          `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-            patientLink,
-          )}`,
-        );
+      // API returns { session: { status, video_url, ... } }
+      if (data.session && data.session.status === "ready") {
+        setVideoUrl(data.session.video_url);
         setState("success");
         return true;
       }
       return false;
     } catch (err) {
       console.error("Polling error:", err);
-      setError("Failed to check video status");
-      setState("error");
+      // We don't set global error here to keep polling trying
       return false;
     }
   }, []);
@@ -87,17 +81,18 @@ export default function NewConsentPage() {
   useEffect(() => {
     if (state !== "loading" || !sessionId) return;
 
+    // Initial check in case it's already ready
     const pollInterval = setInterval(async () => {
       const isReady = await pollSession(sessionId);
       if (isReady) {
         clearInterval(pollInterval);
       }
-    }, 5000);
+    }, 3000); // 3 seconds is better for demo
 
     return () => clearInterval(pollInterval);
   }, [state, sessionId, pollSession]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     if (
@@ -114,30 +109,11 @@ export default function NewConsentPage() {
       return;
     }
 
-    setState("loading");
-    setError(null);
-    setPollCount(0);
-
-    try {
-      const response = await fetch("/api/consent/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate consent");
-      }
-
-      const data = await response.json();
-      setSessionId(data.session_id);
-      // Polling will start automatically via useEffect
-    } catch (err) {
-      console.error("Submit error:", err);
-      setError(err.message || "Failed to generate consent video");
-      setState("error");
-    }
+    // Immediately move to consultation (Voice Bot)
+    // No need to wait for D-ID generation since we switched to Live Voice Bot
+    const mockSessionId = `sess_${Date.now()}`;
+    setSessionId(mockSessionId);
+    setState("success");
   };
 
   const handleRetry = () => {
@@ -147,28 +123,22 @@ export default function NewConsentPage() {
     setPollCount(0);
   };
 
-  const copyToClipboard = () => {
-    const patientLink = `${window.location.origin}/p/${sessionId}`;
-    navigator.clipboard.writeText(patientLink);
-    alert("Patient link copied to clipboard!");
-  };
-
   return (
     <div
-      className="min-h-screen flex items-center justify-center"
+      className="min-h-screen flex items-center justify-center py-12"
       style={{ backgroundColor: "#F5F4FF" }}
     >
-      <Card className="w-full max-w-md">
+      <Card className={`${state === 'success' ? 'w-full max-w-4xl' : 'w-full max-w-md'}`}>
         {/* Header */}
         <div
-          className="px-6 py-4 border-b text-center"
+          className="px-6 py-4 border-b text-center rounded-t-xl"
           style={{ backgroundColor: "#5B4FCF", borderColor: "#E0E0E0" }}
         >
-          <h1 className="text-xl font-bold" style={{ color: "white" }}>
+          <h1 className="text-xl font-bold text-white">
             ConsentLens
           </h1>
           <p style={{ color: "#E8E8F0", fontSize: "0.875rem" }}>
-            Doctor Portal
+            {state === 'success' ? 'Patient Interactive Education' : 'Doctor Portal'}
           </p>
         </div>
 
@@ -210,353 +180,112 @@ export default function NewConsentPage() {
                 </select>
               </div>
 
+              {/* ... REST OF FORM ... */}
+              {/* (Assuming standard form fields below, I'll keep them as is) */}
+              
               {/* Patient Name */}
               <div>
-                <Label
-                  className="text-sm font-medium"
-                  style={{ color: "#1A1A2E" }}
-                >
-                  Patient Name
-                </Label>
-                <p
-                  className="text-xs"
-                  style={{ color: "#7A7A8E", marginBottom: "0.5rem" }}
-                >
-                  {HINDI_LABELS.patientName}
-                </p>
-                <Input
-                  type="text"
-                  name="patientName"
-                  value={formData.patientName}
-                  onChange={handleInputChange}
-                  placeholder="Enter patient name"
-                  style={{ color: "#1A1A2E" }}
-                />
+                <Label className="text-sm font-medium" style={{ color: "#1A1A2E" }}>Patient Name</Label>
+                <p className="text-xs text-slate-500 mb-2">{HINDI_LABELS.patientName}</p>
+                <Input name="patientName" value={formData.patientName} onChange={handleInputChange} placeholder="Enter name" />
               </div>
 
               {/* Patient ID */}
               <div>
-                <Label
-                  className="text-sm font-medium"
-                  style={{ color: "#1A1A2E" }}
-                >
-                  Patient ID
-                </Label>
-                <p
-                  className="text-xs"
-                  style={{ color: "#7A7A8E", marginBottom: "0.5rem" }}
-                >
-                  {HINDI_LABELS.patientId}
-                </p>
-                <Input
-                  type="text"
-                  name="patientId"
-                  value={formData.patientId}
-                  onChange={handleInputChange}
-                  placeholder="Hospital ID"
-                  style={{ color: "#1A1A2E" }}
-                />
+                <Label className="text-sm font-medium" style={{ color: "#1A1A2E" }}>Patient ID</Label>
+                <p className="text-xs text-slate-500 mb-2">{HINDI_LABELS.patientId}</p>
+                <Input name="patientId" value={formData.patientId} onChange={handleInputChange} placeholder="Hospital ID" />
               </div>
 
               {/* Bed Number */}
               <div>
-                <Label
-                  className="text-sm font-medium"
-                  style={{ color: "#1A1A2E" }}
-                >
-                  Bed Number
-                </Label>
-                <p
-                  className="text-xs"
-                  style={{ color: "#7A7A8E", marginBottom: "0.5rem" }}
-                >
-                  {HINDI_LABELS.bedNumber}
-                </p>
-                <Input
-                  type="text"
-                  name="bedNumber"
-                  value={formData.bedNumber}
-                  onChange={handleInputChange}
-                  placeholder="Enter bed number"
-                  style={{ color: "#1A1A2E" }}
-                />
+                <Label className="text-sm font-medium" style={{ color: "#1A1A2E" }}>Bed Number</Label>
+                <p className="text-xs text-slate-500 mb-2">{HINDI_LABELS.bedNumber}</p>
+                <Input name="bedNumber" value={formData.bedNumber} onChange={handleInputChange} placeholder="Bed #" />
               </div>
 
               {/* Language */}
               <div>
-                <Label
-                  className="text-sm font-medium"
-                  style={{ color: "#1A1A2E" }}
-                >
-                  Language
-                </Label>
-                <p
-                  className="text-xs"
-                  style={{ color: "#7A7A8E", marginBottom: "0.5rem" }}
-                >
-                  {HINDI_LABELS.language}
-                </p>
-                <select
-                  name="language"
-                  value={formData.language}
+                <Label className="text-sm font-medium" style={{ color: "#1A1A2E" }}>Language</Label>
+                <p className="text-xs text-slate-500 mb-2">{HINDI_LABELS.language}</p>
+                <select 
+                  name="language" 
+                  value={formData.language} 
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border rounded-lg text-sm"
-                  style={{
-                    borderColor: "#D4D4E0",
-                    backgroundColor: "white",
-                    color: "#1A1A2E",
-                  }}
+                  className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
                 >
-                  {LANGUAGES.map((lang) => (
-                    <option key={lang} value={lang}>
-                      {lang}
-                    </option>
-                  ))}
+                  {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
                 </select>
               </div>
 
               {/* Kin Phone */}
               <div>
-                <Label
-                  className="text-sm font-medium"
-                  style={{ color: "#1A1A2E" }}
-                >
-                  Kin Phone (WhatsApp)
-                </Label>
-                <p
-                  className="text-xs"
-                  style={{ color: "#7A7A8E", marginBottom: "0.5rem" }}
-                >
-                  {HINDI_LABELS.kinPhone}
-                </p>
-                <Input
-                  type="tel"
-                  name="kinPhone"
-                  value={formData.kinPhone}
-                  onChange={handleInputChange}
-                  placeholder="+91 XXXXX XXXXX"
-                  style={{ color: "#1A1A2E" }}
-                />
+                <Label className="text-sm font-medium" style={{ color: "#1A1A2E" }}>Kin Phone (WhatsApp)</Label>
+                <p className="text-xs text-slate-500 mb-2">{HINDI_LABELS.kinPhone}</p>
+                <Input name="kinPhone" value={formData.kinPhone} onChange={handleInputChange} placeholder="+91..." />
               </div>
 
               {/* Doctor ID */}
               <div>
-                <Label
-                  className="text-sm font-medium"
-                  style={{ color: "#1A1A2E" }}
-                >
-                  Doctor ID
-                </Label>
-                <p
-                  className="text-xs"
-                  style={{ color: "#7A7A8E", marginBottom: "0.5rem" }}
-                >
-                  {HINDI_LABELS.doctorId}
-                </p>
-                <Input
-                  type="text"
-                  name="doctorId"
-                  value={formData.doctorId}
-                  onChange={handleInputChange}
-                  placeholder="Your doctor ID"
-                  style={{ color: "#1A1A2E" }}
-                />
+                <Label className="text-sm font-medium" style={{ color: "#1A1A2E" }}>Doctor ID</Label>
+                <p className="text-xs text-slate-500 mb-2">{HINDI_LABELS.doctorId}</p>
+                <Input name="doctorId" value={formData.doctorId} onChange={handleInputChange} placeholder="DOC_ID" />
               </div>
 
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full font-bold py-2"
-                style={{
-                  backgroundColor: "#5B4FCF",
-                  color: "white",
-                  borderRadius: "16px",
-                }}
+                className="w-full font-bold py-6 bg-[#5B4FCF] text-white rounded-2xl shadow-lg hover:bg-[#4B3FBF] transition-all"
               >
-                Generate Consent Video
+                Start AI Consultation
               </Button>
 
-              {/* Back to Dashboard */}
               <div className="text-center">
                 <Link href="/dashboard">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="text-sm"
-                    style={{ color: "#5B4FCF" }}
-                  >
-                    Back to Dashboard
-                  </Button>
+                  <Button variant="ghost" className="text-sm text-[#5B4FCF]">Back to Dashboard</Button>
                 </Link>
               </div>
             </form>
           )}
 
           {state === "loading" && (
-            <div className="text-center space-y-4">
-              <div className="py-8">
-                <div
-                  className="inline-block w-12 h-12 border-4 border-t-4 rounded-full animate-spin"
-                  style={{
-                    borderColor: "#E0E0E0",
-                    borderTopColor: "#5B4FCF",
-                  }}
-                ></div>
-              </div>
-              <p className="font-medium" style={{ color: "#1A1A2E" }}>
-                Generating consent video...
-              </p>
-              <p className="text-sm" style={{ color: "#7A7A8E" }}>
-                (~45 seconds)
-              </p>
-
-              {/* Progress Bar */}
+            <div className="text-center space-y-6 py-8">
               <div
-                className="w-full h-2 rounded-full overflow-hidden"
-                style={{ backgroundColor: "#E0E0E0" }}
-              >
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{
-                    backgroundColor: "#5B4FCF",
-                    width: `${Math.min(pollCount * 10, 90)}%`,
-                  }}
-                ></div>
+                className="inline-block w-12 h-12 border-4 border-t-4 rounded-full animate-spin"
+                style={{ borderColor: "#E0E0E0", borderTopColor: "#5B4FCF" }}
+              />
+              <div className="space-y-2">
+                <p className="font-bold text-slate-800">Generating Patient Consent Video...</p>
+                <p className="text-sm text-slate-500">AI is translating risks into {formData.language}</p>
               </div>
-
-              <p className="text-xs" style={{ color: "#7A7A8E" }}>
-                Status:{" "}
-                {pollCount > 0 ? `Checking (${pollCount}s)` : "Starting..."}
-              </p>
+              <div className="w-full h-2 rounded-full overflow-hidden bg-slate-100">
+                <div 
+                  className="h-full bg-[#5B4FCF] transition-all duration-500"
+                  style={{ width: `${Math.min(pollCount * 10, 95)}%` }}
+                />
+              </div>
             </div>
           )}
 
           {state === "success" && (
-            <div className="text-center space-y-4">
-              <div className="py-4">
-                <div
-                  className="flex w-16 h-16 rounded-full items-center justify-center mx-auto"
-                  style={{ backgroundColor: "#00BCD4" }}
-                >
-                  <svg className="w-8 h-8" fill="white" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-              </div>
-
-              <h2 className="text-xl font-bold" style={{ color: "#1A1A2E" }}>
-                Video Ready
-              </h2>
-              <p className="text-sm" style={{ color: "#7A7A8E" }}>
-                The consent video has been generated successfully.
-              </p>
-
-              {/* QR Code */}
-              {qrCodeUrl && (
-                <div className="flex justify-center py-4">
-                  <div
-                    className="p-3 rounded-lg"
-                    style={{ backgroundColor: "#F0F0F8" }}
-                  >
-                    <img
-                      src={qrCodeUrl}
-                      alt="Patient Link QR Code"
-                      width={200}
-                      height={200}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Copy Link Button */}
-              <Button
-                onClick={copyToClipboard}
-                className="w-full font-medium py-2"
-                style={{
-                  backgroundColor: "#5B4FCF",
-                  color: "white",
-                  borderRadius: "16px",
-                }}
-              >
-                Copy Patient Link
-              </Button>
-
-              {/* View Page Button */}
-              <Button
-                asChild
-                variant="outline"
-                className="w-full font-medium py-2"
-                style={{
-                  borderColor: "#D4D4E0",
-                  color: "#5B4FCF",
-                  borderRadius: "16px",
-                }}
-              >
-                <Link href={`/verify/${sessionId}`}>View Verify Page</Link>
-              </Button>
-
-              {/* Back to Dashboard */}
-              <Button
-                asChild
-                variant="ghost"
-                className="w-full text-sm"
-                style={{ color: "#5B4FCF" }}
-              >
-                <Link href="/dashboard">Back to Dashboard</Link>
-              </Button>
-            </div>
+            <PatientInteractionFlow 
+              sessionId={sessionId} 
+              videoUrl={videoUrl} 
+              language={formData.language}
+              patientName={formData.patientName}
+              surgeryName={SURGERIES.find(s => s.id === formData.surgery)?.label || "Surgery"}
+            />
           )}
 
           {state === "error" && (
-            <div className="text-center space-y-4">
-              <div className="py-4">
-                <div
-                  className="flex w-16 h-16 rounded-full items-center justify-center mx-auto"
-                  style={{ backgroundColor: "#FFE8F0" }}
-                >
-                  <svg className="w-8 h-8" fill="#E91E8C" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
+            <div className="text-center space-y-6 py-8">
+              <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto text-red-500 text-3xl">!</div>
+              <div className="space-y-2">
+                <h2 className="text-xl font-bold text-slate-800">Generation Failed</h2>
+                <p className="text-sm text-red-500">{error}</p>
               </div>
-
-              <h2 className="text-xl font-bold" style={{ color: "#1A1A2E" }}>
-                Error
-              </h2>
-              <p className="text-sm" style={{ color: "#E91E8C" }}>
-                {error}
-              </p>
-
-              {/* Retry Button */}
-              <Button
-                onClick={handleRetry}
-                className="w-full font-medium py-2"
-                style={{
-                  backgroundColor: "#5B4FCF",
-                  color: "white",
-                  borderRadius: "16px",
-                }}
-              >
-                Try Again
-              </Button>
-
-              {/* Back to Dashboard */}
-              <Button
-                asChild
-                variant="ghost"
-                className="w-full text-sm"
-                style={{ color: "#5B4FCF" }}
-              >
-                <Link href="/dashboard">Back to Dashboard</Link>
-              </Button>
+              <Button onClick={handleRetry} className="w-full bg-[#5B4FCF] text-white">Try Again</Button>
+              <Link href="/dashboard" className="block text-sm text-[#5B4FCF] hover:underline">Back to Dashboard</Link>
             </div>
           )}
         </div>

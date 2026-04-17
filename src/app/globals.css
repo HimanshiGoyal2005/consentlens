@@ -1,27 +1,66 @@
 @import "tailwindcss";
 
-@theme inline {
-  --color-background: #ffffff;
-  --color-foreground: #171717;
+@theme {
   --color-primary: #5B4FCF;
   --color-accent: #6C72CB;
   --color-teal: #00BCD4;
   --color-pink: #E91E8C;
+  --color-hospital-dark: #070707;
+
+  --radius-card: 24px;
+  --font-sans: "Inter", Arial, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: #0a0a0a;
-    --color-foreground: #ededed;
-  }
+:root {
+  --background: #070707;
+  --foreground: #FFFFFF;
 }
 
 body {
-  background: var(--color-background);
-  color: var(--color-foreground);
-  font-family: 'Inter', sans-serif;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+  overflow-x: hidden;
 }
 
-html {
-  scroll-behavior: smooth;
+/* 60fps Targeted Hardware Acceleration */
+.animate-60fps {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform, opacity;
+}
+
+/* Premium Glass & Layout */
+.safe-area-inset {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 }

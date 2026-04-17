@@ -88,3 +88,43 @@ Output ONLY valid JSON: { "bullets": ["...", "...", "...", "...", "..."], "durat
     };
   }
 }
+/**
+ * Handle conversational follow-up questions from patients.
+ */
+export async function getChatResponse(userQuery, context, language) {
+  const { surgeryName, risks, benefits } = context;
+
+  const systemPrompt = `You are a medical patient educator named ConsentLens AI. 
+You are speaking to a patient who just watched an education video about their ${surgeryName} surgery.
+CONTEXT:
+- Procedure: ${surgeryName}
+- Risks covered: ${risks.join(', ')}
+- Benefits: ${benefits}
+
+RULES:
+1. Answer in ${language} ONLY.
+2. Be extremely empathetic, simple (8th grade level), and reassuring but honest.
+3. NEVER diagnose or suggest alternative treatments.
+4. If asked about something outside the surgery context, gracefully redirect them to speak with their surgeon.
+5. Keep answers under 3 sentences.`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: userQuery,
+      config: {
+        systemInstruction: systemPrompt,
+        temperature: 0.7,
+      },
+    });
+
+    let text = response.text;
+    if (typeof text === 'function') {
+      text = response.text();
+    }
+    return text.trim();
+  } catch (error) {
+    console.error('[Gemini] Chat failure:', error.message);
+    return `I am sorry, I am having trouble answering right now. Please ask Dr. Sharma directly during your consultation.`;
+  }
+}

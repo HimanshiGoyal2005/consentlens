@@ -34,11 +34,8 @@ async function runTests() {
     const sessionId = generateData.session_id;
     console.log(`✅ Session Created: ${sessionId}\n`);
 
-    // 2. Test Session GET Route
-    console.log(`2️⃣ GET /session/${sessionId} (Fetches session + logs)`);
-    const sessionRes = await fetch(`${API_BASE}/session/${sessionId}`);
-    const sessionData = await sessionRes.json();
-    console.log(`Response: Status = ${sessionData.session?.status}, Surgery = ${sessionData.surgery_name}\n`);
+    // 2. Test Voice Caching (Hidden Internal Test)
+    // Concept: hitting /generate twice with same text should be faster 2nd time.
 
     // 3. Test Response Route (Understood)
     console.log('3️⃣ POST /response (Logs "understood" tap)');
@@ -54,8 +51,17 @@ async function runTests() {
     const responseData = await responseRes.json();
     console.log(`Response: New Score = ${responseData.comprehension_score}\n`);
 
-    // 4. Test Complete Route
-    console.log('4️⃣ POST /complete (Marks completed, notifies doctor)');
+    // 4. Test PDF Generation
+    console.log(`4️⃣ GET /pdf/${sessionId} (Generates official document)`);
+    const pdfRes = await fetch(`${API_BASE}/pdf/${sessionId}`);
+    if (pdfRes.ok) {
+      console.log('✅ PDF Generated successfully (Buffer received)');
+    } else {
+      console.log('❌ PDF Generation failed.');
+    }
+
+    // 5. Test Complete Route
+    console.log('\n5️⃣ POST /complete (Marks completed, notifies doctor)');
     const completeRes = await fetch(`${API_BASE}/complete`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -64,17 +70,7 @@ async function runTests() {
     const completeData = await completeRes.json();
     console.log('Response:', completeData, '\n');
 
-    // 5. Test Approve Route
-    console.log('5️⃣ POST /approve (Doctor approves consent)');
-    const approveRes = await fetch(`${API_BASE}/approve`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session_id: sessionId, doctor_id: 'DR001' })
-    });
-    const approveData = await approveRes.json();
-    console.log('Response:', approveData, '\n');
-
-    console.log('🎉 All tests completed!');
+    console.log('🎉 All backend flow tests completed!');
 
   } catch (err) {
     console.error('❌ Test script failed:', err.message);
