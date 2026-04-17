@@ -17,8 +17,8 @@ export function RealtimeAgent({ sessionId, language, patientName, onConfirmTrans
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
 
-  const DID_API_KEY = "a2FuYWtzaDg0QGdtYWlsLmNvbQ:0-B6lNhPznW3s_dyd7aHr";
-  const AGENT_ID = "v2_agt_Cgmj5Ki0";
+  const DID_API_KEY = process.env.NEXT_PUBLIC_DID_API_KEY;
+  const AGENT_ID = process.env.NEXT_PUBLIC_DID_AGENT_ID || "v2_agt_Cgmj5Ki0";
 
   // 1. Initialize Agent
   useEffect(() => {

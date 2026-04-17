@@ -14,7 +14,7 @@ const SURGERIES = [
   { id: "cataract", label: "Cataract Surgery" },
 ];
 
-const LANGUAGES = ["Bhojpuri", "Maithili", "Hindi", "Awadhi", "Marathi"];
+const LANGUAGES = ["Bhojpuri", "English", "Hindi", "Awadhi", "Marathi"];
 
 const HINDI_LABELS = {
   surgery: "Aapreyshan",
@@ -182,7 +182,7 @@ export default function NewConsentPage() {
 
               {/* ... REST OF FORM ... */}
               {/* (Assuming standard form fields below, I'll keep them as is) */}
-              
+
               {/* Patient Name */}
               <div>
                 <Label className="text-sm font-medium" style={{ color: "#1A1A2E" }}>Patient Name</Label>
@@ -208,9 +208,9 @@ export default function NewConsentPage() {
               <div>
                 <Label className="text-sm font-medium" style={{ color: "#1A1A2E" }}>Language</Label>
                 <p className="text-xs text-slate-500 mb-2">{HINDI_LABELS.language}</p>
-                <select 
-                  name="language" 
-                  value={formData.language} 
+                <select
+                  name="language"
+                  value={formData.language}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
                 >
@@ -259,7 +259,7 @@ export default function NewConsentPage() {
                 <p className="text-sm text-slate-500">AI is translating risks into {formData.language}</p>
               </div>
               <div className="w-full h-2 rounded-full overflow-hidden bg-slate-100">
-                <div 
+                <div
                   className="h-full bg-[#5B4FCF] transition-all duration-500"
                   style={{ width: `${Math.min(pollCount * 10, 95)}%` }}
                 />
@@ -268,9 +268,9 @@ export default function NewConsentPage() {
           )}
 
           {state === "success" && (
-            <PatientInteractionFlow 
-              sessionId={sessionId} 
-              videoUrl={videoUrl} 
+            <PatientInteractionFlow
+              sessionId={sessionId}
+              videoUrl={videoUrl}
               language={formData.language}
               patientName={formData.patientName}
               surgeryName={SURGERIES.find(s => s.id === formData.surgery)?.label || "Surgery"}
