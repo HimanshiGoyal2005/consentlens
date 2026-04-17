@@ -9,17 +9,30 @@
     "lint": "eslint"
   },
   "dependencies": {
+<<<<<<< Updated upstream
     "@google/genai": "^1.50.1",
     "@supabase/supabase-js": "^2.103.3",
     "elevenlabs": "^1.59.0",
+=======
+    "@radix-ui/react-slot": "^1.2.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.38.0",
+    "lottie-react": "^2.4.1",
+    "lucide-react": "^1.8.0",
+>>>>>>> Stashed changes
     "next": "16.2.4",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
-    "tailwindcss": "^4"
+    "tailwindcss": "^4",
+    "typescript": "^6.0.3"
   }
 }
