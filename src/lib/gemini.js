@@ -23,6 +23,7 @@ Output ONLY valid JSON: { "bullets": ["...", "...", "...", "...", "..."], "durat
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: userPrompt,
+
       config: {
         systemInstruction: systemPrompt,
         temperature: 0.3,
@@ -46,6 +47,44 @@ Output ONLY valid JSON: { "bullets": ["...", "...", "...", "...", "..."], "durat
     return parsed;
   } catch (error) {
     console.error('[Gemini] Risk bullet generation failed:', error.message);
-    throw new Error(`Gemini generation failed: ${error.message}`);
+    console.warn('[Gemini] Using fallback generic bullets...');
+    
+    // Fallback: return generic translated bullets (language-aware)
+    const languageMap = {
+      'bhojpuri': [
+        'सर्जरी के समय खून बहना हो सकता है।',
+        'ऑपरेशन के बाद संक्रमण की समभावना है।',
+        'पास के अंगों को चोट पहुँच सकती है।',
+        'एनेस्थीसिया से एलर्जी हो सकती है।',
+        'ऑपरेशन के महीनों बाद खून का थक्का बन सकता है।',
+      ],
+      'maithili': [
+        'शल्य-चिकित्साय ख़ून बहि सकैत अछि।',
+        'ऑपरेशनक बाद संक्रमण भय अछि।',
+        'आस-पास क अंग क चोट लग सकैत अछि।',
+        'एनेस्थीसिया सँ एलर्जी भय सकैत अछि।',
+        'ऑपरेशनक बाद खून क थक्का बन सकैत अछि।',
+      ],
+      'hindi': [
+        'सर्जरी के दौरान रक्तस्राव हो सकता है।',
+        'ऑपरेशन के बाद संक्रमण की संभावना है।',
+        'पास के अंगों को चोट लग सकती है।',
+        'एनेस्थीसिया से एलर्जी हो सकती है।',
+        'ऑपरेशन के बाद रक्त के थक्के बन सकते हैं।',
+      ],
+      'english': [
+        'Bleeding may occur during or after surgery.',
+        'Infection at the surgical site is possible.',
+        'Nearby organs may be injured during the procedure.',
+        'Allergic reactions to anesthesia can happen.',
+        'Blood clots may form weeks after surgery.',
+      ],
+    };
+    
+    const bullets = languageMap[language.toLowerCase()] || languageMap['english'];
+    return {
+      bullets: bullets.slice(0, Math.min(5, risks.length)),
+      duration_sec: 90
+    };
   }
 }

@@ -99,11 +99,14 @@ export async function POST(request) {
 
     // Attempt to mark session as failed (best-effort)
     if (sessionId) {
-      await supabaseAdmin
-        .from('consent_sessions')
-        .update({ status: 'generating' })
-        .eq('session_id', sessionId)
-        .catch(() => {});
+      try {
+        await supabaseAdmin
+          .from('consent_sessions')
+          .update({ status: 'failed' })
+          .eq('session_id', sessionId);
+      } catch (updateError) {
+        console.error('[Generate] Failed to update session status:', updateError.message);
+      }
     }
 
     return NextResponse.json({ error: error.message }, { status: 500 });

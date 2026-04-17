@@ -435,7 +435,7 @@ export default function NewConsentPage() {
             <div className="text-center space-y-4">
               <div className="py-4">
                 <div
-                  className="inline-block w-16 h-16 rounded-full flex items-center justify-center"
+                  className="flex w-16 h-16 rounded-full items-center justify-center mx-auto"
                   style={{ backgroundColor: "#00BCD4" }}
                 >
                   <svg className="w-8 h-8" fill="white" viewBox="0 0 20 20">
@@ -515,7 +515,7 @@ export default function NewConsentPage() {
             <div className="text-center space-y-4">
               <div className="py-4">
                 <div
-                  className="inline-block w-16 h-16 rounded-full flex items-center justify-center"
+                  className="flex w-16 h-16 rounded-full items-center justify-center mx-auto"
                   style={{ backgroundColor: "#FFE8F0" }}
                 >
                   <svg className="w-8 h-8" fill="#E91E8C" viewBox="0 0 20 20">
