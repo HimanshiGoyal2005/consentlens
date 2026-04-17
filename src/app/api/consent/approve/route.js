@@ -16,6 +16,7 @@ export async function POST(request) {
     const approved_at = new Date().toISOString();
 
     // Step 1: Update session to approved
+    // Note: emergency fields (kin_name, etc.) are already in the session row
     const { error: updateError } = await supabaseAdmin
       .from('consent_sessions')
       .update({

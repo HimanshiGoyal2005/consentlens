@@ -7,9 +7,106 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 const SURGERY_NAMES = {
+  // GENERAL SURGERY
+  cholecystectomy: "Gallbladder Removal / Cholecystectomy",
+  hernia_repair: "Hernia Repair",
+  hydrocele: "Hydrocele Surgery",
+  piles: "Piles / Hemorrhoids Surgery",
+  fistula: "Fistula Surgery",
+  abscess_drainage: "Abscess Drainage",
+  lipoma: "Lipoma Excision",
+  circumcision: "Circumcision",
+  thyroidectomy: "Thyroid Removal / Thyroidectomy",
   appendix_lap: "Laparoscopic Appendectomy",
+
+  // OBSTETRICS & GYNAE
+  normal_delivery: "Normal Delivery",
+  lscs: "C-Section / LSCS",
+  dnc: "D&C / Dilatation & Curettage",
+  tubectomy: "Tubectomy / Nasbandi",
+  hysterectomy: "Bacchedani ka Operation / Hysterectomy",
+  mtp: "MTP / Medical Abortion",
+  ectopic: "Ectopic Pregnancy Surgery",
+
+  // ORTHOPEDIC
   knee_replace: "Total Knee Replacement",
+  fracture_fix: "Fracture Fixation / Rod-Plating",
+  thr: "Total Hip Replacement",
+  arthroscopy: "Arthroscopy / Knee Camera",
+  spine_surgery: "Spine Surgery",
+  acl_repair: "ACL Repair / Ligament Surgery",
+  shoulder_replace: "Shoulder Replacement",
+
+  // CARDIAC
+  angiography: "Angiography",
+  angioplasty: "Angioplasty + Stent",
+  cabg: "Bypass Surgery / CABG",
+  pacemaker: "Pacemaker Implant",
+  valve_replace: "Valve Replacement",
+  asd_closure: "ASD Closure",
+
+  // NEURO
+  craniotomy: "Craniotomy / Brain Surgery",
+  spine_tumor: "Spine Tumor Removal",
+  vp_shunt: "VP Shunt",
+  epilepsy_surgery: "Epilepsy Surgery",
+  brain_biopsy: "Brain Biopsy",
+
+  // ENT
+  tonsillectomy: "Tonsil Removal / Tonsillectomy",
+  adenoidectomy: "Adenoid Removal",
+  septoplasty: "Septoplasty / Naak ki Haddi",
+  fess: "FESS / Sinus Surgery",
+  myringotomy: "Ear Drum Surgery / Myringotomy",
+  mastoidectomy: "Mastoidectomy",
+
+  // OPHTHAL
   cataract: "Cataract Surgery",
+  glaucoma: "Glaucoma Surgery / Kaala Motia",
+  retinal_detachment: "Retinal Detachment Surgery",
+  lasik: "LASIK / Chashma Hatana",
+  squint: "Squint Correction / Bhengaapan",
+  pterygium: "Pterygium Removal",
+
+  // UROLOGY
+  pcnl: "Kidney Stone / PCNL",
+  turp: "TURP / Prostate Surgery",
+  cystoscopy: "Cystoscopy / Bladder Camera",
+  varicocele: "Varicocele Surgery",
+  vasectomy: "Vasectomy / Nasbandi Male",
+  nephrectomy: "Kidney Removal / Nephrectomy",
+
+  // ONCOLOGY
+  mastectomy: "Mastectomy / Breast Removal",
+  lumpectomy: "Lumpectomy / Breast Lump",
+  colon_resection: "Colon Cancer Surgery",
+  oral_cancer: "Oral Cancer Surgery",
+
+  // PEDIATRIC
+  cleft_lip: "Cleft Lip / Kata Honth",
+  congenital_hernia: "Congenital Hernia",
+  undescended_testis: "Undescended Testis",
+  pda_ligation: "PDA Ligation",
+
+  // DENTAL
+  rct: "Root Canal Treatment / RCT",
+  extraction: "Tooth Extraction / Daant Nikalna",
+  implant: "Dental Implant",
+  jaw_fracture: "Jaw Fracture Fixation",
+  wisdom_tooth: "Wisdom Tooth Removal",
+
+  // PLASTIC
+  burn_contracture: "Burn Contracture Release",
+  skin_graft: "Skin Graft",
+  scar_revision: "Scar Revision",
+  rhinoplasty: "Rhinoplasty / Naak Surgery",
+
+  // EMERGENCY
+  trauma_lap: "Trauma Laparotomy",
+  emergency_craniotomy: "Emergency Craniotomy",
+  emergency_lscs: "Emergency C-Section",
+  vascular_repair: "Vascular Repair",
+  splenectomy: "Spleen Removal / Splenectomy",
 };
 
 const STATUS_BADGES = {
@@ -129,21 +226,42 @@ function SessionCard({ session, onApprove, isApproving }) {
         </div>
       </div>
 
-      {/* Status + Time */}
+      {/* Status + Time + Actor Badge */}
       <div className="flex items-center justify-between">
-        <span
-          className="px-3 py-1 rounded-lg text-xs font-medium"
-          style={{
-            backgroundColor: statusBadge.bg,
-            color: statusBadge.text,
-          }}
-        >
-          {session.status.charAt(0).toUpperCase() + session.status.slice(1)}
-        </span>
+        <div className="flex items-center gap-2">
+           <span
+             className="px-3 py-1 rounded-lg text-xs font-medium"
+             style={{
+               backgroundColor: statusBadge.bg,
+               color: statusBadge.text,
+             }}
+           >
+             {session.status.charAt(0).toUpperCase() + session.status.slice(1)}
+           </span>
+           {session.consent_actor === 'kin' && (
+             <span className="px-3 py-1 rounded-lg text-xs font-bold bg-red-100 text-red-700 border border-red-200">
+               Kin Consent
+             </span>
+           )}
+        </div>
         <p className="text-xs" style={{ color: "#7A7A8E" }}>
           <TimeAgo timestamp={session.created_at} />
         </p>
       </div>
+
+      {/* Emergency / Kin Details */}
+      {session.consent_actor === 'kin' && (
+        <div className="p-3 rounded-xl bg-red-50/50 border border-red-100 space-y-2 text-xs">
+          <div className="flex justify-between">
+             <span className="text-red-500 font-bold uppercase tracking-tight">Kin Member</span>
+             <span className="text-slate-900 font-medium">{session.kin_name} ({session.kin_relation})</span>
+          </div>
+          <div className="flex justify-between border-t border-red-100 pt-1.5 mt-1.5">
+             <span className="text-red-500 font-bold uppercase tracking-tight">Reason</span>
+             <span className="text-slate-900 line-clamp-1">{session.emergency_reason}</span>
+          </div>
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div className="grid grid-cols-2 gap-2 pt-2">
@@ -173,6 +291,12 @@ function SessionCard({ session, onApprove, isApproving }) {
           >
             {isApproving ? "Approving..." : "Approve"}
           </Button>
+        )}
+        
+        {session.status === "approved" && (
+           <div className="col-span-2 text-[10px] text-center text-slate-400 mt-1">
+             {session.consent_actor === 'kin' ? `Consented by Kin: ${session.kin_name} • Approved at ${new Date(session.approved_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` : `Consented by Patient • Approved at ${new Date(session.approved_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`}
+           </div>
         )}
       </div>
     </Card>
@@ -223,11 +347,11 @@ export default function DashboardPage() {
     const avgComprehension =
       sessionsToday.length > 0
         ? Math.round(
-            sessionsToday.reduce(
-              (sum, s) => sum + (s.comprehension_score || 0),
-              0,
-            ) / sessionsToday.length,
-          )
+          sessionsToday.reduce(
+            (sum, s) => sum + (s.comprehension_score || 0),
+            0,
+          ) / sessionsToday.length,
+        )
         : 0;
 
     setStats({
@@ -295,7 +419,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div style={{ backgroundColor: "#F5F4FF", minHeight: "100vh" }}>
+    <div style={{ backgroundColor: "#F5F4FF", minHeight: "100vh", color: "#1A1A2E" }}>
       {/* Navbar */}
       <nav
         className="border-b px-6 py-4"
@@ -305,9 +429,9 @@ export default function DashboardPage() {
         }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold" style={{ color: "#5B4FCF" }}>
-            ConsentLens
-          </h1>
+          <Link href="/dashboard" className="transition-opacity hover:opacity-80">
+            <img src="/logo-horizontal.svg" alt="ConsentLens" className="h-8" />
+          </Link>
 
           <div className="flex items-center gap-4">
             <Link href="/dashboard">

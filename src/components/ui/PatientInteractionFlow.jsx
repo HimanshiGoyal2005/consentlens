@@ -2,12 +2,24 @@ import { useState } from "react";
 import { VoiceBot } from "./VoiceBot";
 import { VoiceConfirmation } from "./VoiceConfirmation";
 import { Card } from "./card";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
 /**
  * Handles the sequential flow: VoiceBot -> Voice Confirmation
  */
-export function PatientInteractionFlow({ sessionId, videoUrl, language, patientName, surgeryName }) {
-  const [step, setStep] = useState('agent'); // 'agent', 'voice', 'done'
+export function PatientInteractionFlow({ 
+  sessionId, 
+  videoUrl, 
+  language, 
+  patientName, 
+  surgeryName,
+  consentActor = 'patient',
+  kinName,
+  kinRelation,
+  emergencyReason
+}) {
+  // FAST-TRACK: Skip AI agent for emergency kin consent
+  const [step, setStep] = useState(consentActor === 'kin' ? 'voice' : 'agent'); // 'agent', 'voice', 'done'
   const [c2paHash, setC2paHash] = useState(null);
 
   const handleAgentConfirm = () => {
@@ -17,6 +29,81 @@ export function PatientInteractionFlow({ sessionId, videoUrl, language, patientN
   const handleVoiceSuccess = (hash) => {
     setC2paHash(hash);
     setStep('done');
+    // AUTO-DOWNLOAD: In emergencies, give the PDF immediately
+    if (consentActor === 'kin') {
+      setTimeout(() => downloadPDF(), 500);
+    }
+  };
+
+  const downloadPDF = async () => {
+    try {
+      const pdfDoc = await PDFDocument.create();
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+      const page = pdfDoc.addPage([595.28, 841.89]); // A4 Size
+      const { width, height } = page.getSize();
+      let cursorY = height - 80;
+
+      const drawText = (text, size, fontType = font, indent = 50) => {
+        page.drawText(text, { x: indent, y: cursorY, size, font: fontType, color: rgb(0.1, 0.1, 0.1) });
+        cursorY -= (size + 12);
+      };
+
+      // Header
+      page.drawRectangle({ x: 0, y: height - 120, width, height: 120, color: consentActor === 'kin' ? rgb(1, 0.95, 0.95) : rgb(0.96, 0.96, 0.98) });
+      cursorY = height - 60;
+      drawText(consentActor === 'kin' ? 'EMERGENCY KIN CONSENT CERTIFICATE' : 'CONSENTLENS MEDICAL CERTIFICATE', 18, boldFont);
+      drawText('Secure Biometric Auditing System', 10, font);
+      cursorY -= 30;
+
+      // Patient Details
+      drawText('PATIENT & SURGERY DETAILS', 14, boldFont);
+      if (consentActor === 'kin') {
+        drawText(`Consenting Kin: ${kinName} (${kinRelation})`, 12, boldFont);
+        drawText(`On behalf of Patient: ${patientName}`, 12);
+        drawText(`Emergency Justification: ${emergencyReason}`, 11, font, 50);
+        cursorY -= 5;
+      } else {
+        drawText(`Patient Name: ${patientName}`, 12);
+      }
+      
+      drawText(`Procedure: ${surgeryName}`, 12);
+      drawText(`Education Language: ${language}`, 12);
+      drawText(`Date & Time: ${new Date().toLocaleString()}`, 12);
+      cursorY -= 20;
+
+      // Cryptographic Section
+      drawText('BIOMETRIC VERIFICATION (C2PA)', 14, boldFont);
+      drawText(`This document certifies that the ${consentActor === 'kin' ? 'kin legal representative' : 'patient'} visually and vocally consented`, 11);
+      drawText('to the surgical procedure outlined above. A biometric video record', 11);
+      drawText('has been captured, audited, and secured using cryptographic hashing.', 11);
+      cursorY -= 15;
+      
+      drawText('SHA-256 Cryptographic Fingerprint:', 10, boldFont);
+      drawText(c2paHash || 'Pending...', 9);
+      cursorY -= 40;
+
+      // Signatures
+      drawText('__________________________________________', 12);
+      drawText('Attending Physician / Surgeon Signature', 10);
+      
+      cursorY -= 60;
+      drawText('__________________________________________', 12);
+      drawText(consentActor === 'kin' ? `Kin Representative Signature [${kinName}]` : 'Patient Signature', 10);
+
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `ConsentLens_${consentActor === 'kin' ? 'Kin_' : ''}Certificate_${patientName.replace(/\s+/g, '_')}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("PDF Generation failed:", err);
+      alert("Failed to generate PDF. Please try again.");
+    }
   };
 
   return (
@@ -29,20 +116,61 @@ export function PatientInteractionFlow({ sessionId, videoUrl, language, patientN
             patientName={patientName}
             surgeryName={surgeryName}
             onConfirmTransition={handleAgentConfirm}
+            kinName={kinName}
+            kinRelation={kinRelation}
           />
         </div>
       )}
 
       {step === 'voice' && (
-        <div className="space-y-4 max-w-2xl mx-auto">
+        <div className="space-y-6 max-w-2xl mx-auto pt-6">
+          {consentActor === 'kin' && (
+            <Card className="p-6 border-red-500/30 bg-red-50/50 shadow-xl rounded-3xl animate-in slide-in-from-top-4 duration-700">
+               <div className="flex items-center gap-3 text-red-600 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-black uppercase tracking-tight">Emergency Consent Form</h2>
+               </div>
+               
+               <div className="grid grid-cols-2 gap-6 text-sm">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">Subject Patient</p>
+                    <p className="font-bold text-slate-900">{patientName}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">Surgery</p>
+                    <p className="font-bold text-slate-900">{surgeryName}</p>
+                  </div>
+                  <div className="space-y-1 pt-2">
+                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">Consenting Kin</p>
+                    <p className="font-bold text-slate-900">{kinName} ({kinRelation})</p>
+                  </div>
+                  <div className="space-y-1 pt-2">
+                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">Justification</p>
+                    <p className="font-bold text-slate-900 line-clamp-2">{emergencyReason}</p>
+                  </div>
+               </div>
+
+               <div className="mt-6 pt-4 border-t border-red-100 text-[10px] text-slate-400 font-medium italic">
+                 "I, the relative of the patient, understand the urgency and hereby provide legal biometric consent for the procedure described above."
+               </div>
+            </Card>
+          )}
+
           <div className="flex items-center justify-between px-2">
-            <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Final Biometric Consent</h3>
+            <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Final Biometric Signature</h3>
           </div>
           <VoiceConfirmation 
             sessionId={sessionId} 
             language={language} 
             patientName={patientName}
+            surgeryName={surgeryName}
             onSuccess={handleVoiceSuccess}
+            kinName={kinName}
+            kinRelation={kinRelation}
           />
         </div>
       )}
@@ -71,19 +199,13 @@ export function PatientInteractionFlow({ sessionId, videoUrl, language, patientN
                 SHA-256: {c2paHash}
               </div>
               <button 
-                className="w-full py-2 rounded-lg font-bold bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300 transition-colors"
-                onClick={() => {
-                  const element = document.createElement("a");
-                  const content = `CONSENTLENS BIOMETRIC CERTIFICATE\n\nPatient: ${patientName}\nSession ID: ${sessionId}\nTimestamp: ${new Date().toISOString()}\n\nC2PA HASH (SHA-256):\n${c2paHash}\n\nThis document certifies that a biometric video consent was captured and its cryptographic hash matches the database record.`;
-                  const file = new Blob([content], {type: 'text/plain'});
-                  element.href = URL.createObjectURL(file);
-                  element.download = `consent_certificate_${patientName.replace(/\\s+/g, '_')}.txt`;
-                  document.body.appendChild(element);
-                  element.click();
-                  document.body.removeChild(element);
-                }}
+                onClick={downloadPDF}
+                className="w-full py-3 rounded-lg font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg transition-colors flex items-center justify-center gap-2"
               >
-                Download Legal Certificate
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Download Legal Consent Template (PDF)
               </button>
             </div>
           )}

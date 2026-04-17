@@ -16,10 +16,7 @@ function NavBar() {
       <div className="flex items-center gap-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-purple-600" />
-          <span className="text-xl font-bold text-slate-900 dark:text-white">
-            ConsentLens
-          </span>
+          <img src="/logo-horizontal.svg" alt="ConsentLens" className="h-8" />
         </Link>
 
         {/* Links */}
@@ -122,12 +119,7 @@ function PatientPWAScreen() {
       {/* ── App header ── */}
       <div className="flex items-center justify-between px-4 py-2">
         <div className="flex items-center gap-2">
-          <div className="h-5 w-5 rounded bg-purple-600 flex items-center justify-center">
-            <Shield className="h-3 w-3 text-white" />
-          </div>
-          <span className="text-xs font-semibold tracking-wide">
-            ConsentLens
-          </span>
+          <img src="/logo-horizontal.svg" alt="ConsentLens" className="h-4 brightness-0 invert" />
         </div>
         <div className="flex items-center gap-1.5 rounded-full bg-slate-800 px-2 py-0.5">
           <Globe className="h-3 w-3 text-slate-400" />
