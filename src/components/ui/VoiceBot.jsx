@@ -23,7 +23,7 @@ export function VoiceBot({
   const recognitionRef = useRef(null);
   const historyRef = useRef([]);
 
-  const DOCTOR_IMAGE = "https://edamqdqlfscmgxwjdvsa.supabase.co/storage/v1/object/public/consent-videos/avatars/saree_doctor.png";
+  const DOCTOR_IMAGE = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/consent-videos/avatars/saree_doctor.png`;
 
   // Keep historyRef in sync for use inside callbacks
   historyRef.current = history;

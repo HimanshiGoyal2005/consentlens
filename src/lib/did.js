@@ -21,7 +21,7 @@ function sleep(ms) {
  */
 export async function generateAvatarVideo(scriptText, sessionId, language = 'Hindi') {
   try {
-    const SAREE_DOCTOR_URL = "https://edamqdqlfscmgxwjdvsa.supabase.co/storage/v1/object/public/consent-videos/avatars/saree_doctor.png";
+    const SAREE_DOCTOR_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/consent-videos/avatars/saree_doctor.png`;
 
     // Language to Microsoft Voice Mapping
     const voiceMap = {
